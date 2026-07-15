@@ -1,0 +1,416 @@
+import os
+import re
+import json
+import base64
+import requests
+import anthropic
+from datetime import datetime, date, timedelta, timezone
+from korean_lunar_calendar import KoreanLunarCalendar
+
+# .env 파일 로드: 프로젝트 폴더 우선, 없으면 홈 디렉토리 폴백
+for _env_path in [
+    os.path.join(os.path.dirname(os.path.abspath(__file__)), ".env"),
+    os.path.expanduser("~/.env"),
+]:
+    if os.path.exists(_env_path):
+        with open(_env_path, encoding="utf-8") as _f:
+            for _line in _f:
+                _line = _line.strip()
+                if _line and not _line.startswith("#") and "=" in _line:
+                    _k, _v = _line.split("=", 1)
+                    os.environ.setdefault(_k.strip(), _v.strip())
+        break
+
+# ==========================================
+# 1. 필수 설정 (GitHub Secrets 또는 .env)
+# ==========================================
+ANTHROPIC_API_KEY     = os.environ.get("ANTHROPIC_API_KEY")
+DAYLOG_WP_SITE_URL     = os.environ.get("DAYLOG_WP_SITE_URL", "https://daylog.bestwellth.org")
+DAYLOG_WP_USERNAME     = os.environ.get("DAYLOG_WP_USERNAME")
+DAYLOG_WP_APP_PASSWORD = os.environ.get("DAYLOG_WP_APP_PASSWORD")
+TELEGRAM_BOT_TOKEN     = os.environ.get("TELEGRAM_BOT_TOKEN")
+TELEGRAM_CHAT_ID       = os.environ.get("TELEGRAM_CHAT_ID")
+
+for key, val in [
+    ("ANTHROPIC_API_KEY", ANTHROPIC_API_KEY),
+    ("DAYLOG_WP_USERNAME", DAYLOG_WP_USERNAME),
+    ("DAYLOG_WP_APP_PASSWORD", DAYLOG_WP_APP_PASSWORD),
+]:
+    if not val:
+        raise ValueError(f"{key} 환경변수가 설정되지 않았습니다.")
+
+client = anthropic.Anthropic(api_key=ANTHROPIC_API_KEY)
+MODEL_NAME = "claude-haiku-4-5"
+print(f"Using model: {MODEL_NAME}\n")
+
+KST = timezone(timedelta(hours=9))
+CALENDAR_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), "calendar_schema.json")
+SITE_TARGET = "daylog"
+
+# 카테고리 → 제목 접두어 (H1 태그가 아닌 텍스트 접두어. 본문에는 H1 사용 금지, H2부터 시작)
+CATEGORY_PREFIX = {
+    "기념일": "[기념일]",
+    "명절": "[명절]",
+    "행정마감": "[행정마감]",
+    "시즌": "[시즌]",
+}
+
+CAT_COLOR        = "#6366f1"
+CAT_LIGHT_BG     = "#eef2ff"
+CAT_LIGHT_BORDER = "#c7d2fe"
+CAT_DARK         = "#4338ca"
+
+
+# ==========================================
+# 캘린더 JSON 읽기/쓰기
+# ==========================================
+def load_calendar():
+    with open(CALENDAR_FILE, encoding="utf-8") as f:
+        return json.load(f)
+
+
+def save_calendar(data):
+    with open(CALENDAR_FILE, "w", encoding="utf-8") as f:
+        json.dump(data, f, ensure_ascii=False, indent=2)
+        f.write("\n")
+
+
+def today_kst():
+    return datetime.now(KST).date()
+
+
+def solar_date_for_year(item, year):
+    """item의 date(MM-DD)를 주어진 year 기준 양력 date 객체로 변환. 음력이면 자동 환산."""
+    month, day = (int(x) for x in item["date"].split("-"))
+    if item.get("calendar_type") == "lunar":
+        cal = KoreanLunarCalendar()
+        cal.setLunarDate(year, month, day, False)
+        return date(cal.solarYear, cal.solarMonth, cal.solarDay)
+    return date(year, month, day)
+
+
+def find_due_items(data):
+    """오늘(KST) 기준 리드타임 도달 + 해당 연도 미발행 항목 목록 반환. (item, event_year, event_date) 튜플 리스트."""
+    today = today_kst()
+    due = []
+    for item in data.get("items", []):
+        if item.get("site_target") != SITE_TARGET:
+            continue
+        for candidate_year in (today.year, today.year + 1, today.year - 1):
+            try:
+                event_date = solar_date_for_year(item, candidate_year)
+            except Exception as e:
+                print(f"[{item['id']}] 날짜 계산 실패: {e}")
+                continue
+            lead = item.get("lead_time_days", 0)
+            publish_date = event_date - timedelta(days=lead)
+            if publish_date == today:
+                if item.get("last_published_year") == event_date.year:
+                    print(f"[{item['id']}] {event_date.year}년분 이미 발행됨 — 스킵")
+                    break
+                due.append((item, event_date.year, event_date))
+                break
+    return due
+
+
+# ==========================================
+# WordPress REST API 헬퍼
+# ==========================================
+def wp_auth_header():
+    token = base64.b64encode(f"{DAYLOG_WP_USERNAME}:{DAYLOG_WP_APP_PASSWORD}".encode()).decode()
+    return {"Authorization": f"Basic {token}", "Content-Type": "application/json"}
+
+
+def wp_create_draft(title, content, excerpt, slug):
+    """status=draft 로만 저장. 발행(publish) 절대 금지 — 코로님이 수동 검토 후 게시."""
+    payload = {
+        "title": title, "content": content, "excerpt": excerpt,
+        "status": "draft", "slug": slug,
+    }
+    resp = requests.post(
+        f"{DAYLOG_WP_SITE_URL}/wp-json/wp/v2/posts",
+        headers=wp_auth_header(), json=payload, timeout=15,
+    )
+    if not resp.ok:
+        print(f"WordPress API 오류 {resp.status_code}: {resp.text[:300]}")
+        return None
+    return resp.json()
+
+
+def wp_update_rank_math(post_id, focus_keyword, meta_description):
+    payload = {"meta": {
+        "rank_math_focus_keyword": focus_keyword,
+        "rank_math_description": meta_description,
+    }}
+    resp = requests.post(
+        f"{DAYLOG_WP_SITE_URL}/wp-json/wp/v2/posts/{post_id}",
+        headers=wp_auth_header(), json=payload, timeout=15,
+    )
+    if resp.status_code == 200:
+        print(f"Rank Math 메타 업데이트 완료 (post_id: {post_id})")
+    else:
+        print(f"Rank Math 메타 업데이트 실패: {resp.status_code} {resp.text[:200]}")
+
+
+# ==========================================
+# 텔레그램 전송
+# ==========================================
+def send_telegram(message):
+    if not TELEGRAM_BOT_TOKEN or not TELEGRAM_CHAT_ID:
+        return
+    try:
+        resp = requests.post(
+            f"https://api.telegram.org/bot{TELEGRAM_BOT_TOKEN}/sendMessage",
+            json={"chat_id": TELEGRAM_CHAT_ID, "text": message, "parse_mode": "HTML"},
+            timeout=10,
+        )
+        print("텔레그램 전송 완료" if resp.status_code == 200 else f"텔레그램 전송 실패: {resp.text}")
+    except Exception as e:
+        print(f"텔레그램 전송 오류: {e}")
+
+
+# ==========================================
+# HTML 구조 가이드 (4탭 대시보드 — 워드프레스 탭용 본문 구조)
+# ==========================================
+def build_daylog_html_guide():
+    return f"""
+[HTML 구조 — 반드시 이 순서, 이 스타일 그대로. 절대 생략 금지]
+
+[모바일 필수 규칙]
+- 본문 최소 font-size:15px, 표 내부 최소 font-size:13px, 캡션·출처만 font-size:12px 허용
+- 모든 표는 반드시 overflow-x:auto + word-break:keep-all 적용
+- 표 컬럼 최대 3개 — 4개 이상 필요 시 카드형으로 전환
+
+--- 1. 카테고리 뱃지 ---
+<div style="display:inline-block;background:{CAT_LIGHT_BG};color:{CAT_COLOR};font-size:13px;font-weight:700;padding:4px 14px;border-radius:20px;margin-bottom:14px;">[카테고리명] · [서브라벨]</div>
+
+--- 2. 서브 제목 (H1 절대 금지 — 본문은 H2부터 시작) ---
+<div style="font-size:clamp(22px,4vw,28px);font-weight:800;color:#1e293b;margin:0 0 8px 0;line-height:1.4;">[서브 문구]</div>
+
+--- 3. 핵심 정보 요약 박스 ---
+<div style="background:#f8fafc;padding:28px 30px;border-radius:16px;border:1px solid #e2e8f0;margin-bottom:40px;">
+  <p style="margin-top:0;font-size:13px;font-weight:700;color:#94a3b8;letter-spacing:0.08em;margin-bottom:16px;">한눈에 보기</p>
+  <ul style="list-style:none !important;padding:0 !important;margin:0 0 24px 0 !important;">
+    <li style="display:flex;align-items:flex-start;gap:12px;font-size:15px;color:#334155;line-height:1.8;margin-bottom:10px;list-style:none;"><span style="display:inline-block;width:6px;height:6px;min-width:6px;background:{CAT_COLOR};border-radius:50%;margin-top:9px;flex-shrink:0;"></span><span style="flex:1;">[핵심 정보 1]</span></li>
+    <li style="display:flex;align-items:flex-start;gap:12px;font-size:15px;color:#334155;line-height:1.8;margin-bottom:10px;list-style:none;"><span style="display:inline-block;width:6px;height:6px;min-width:6px;background:{CAT_COLOR};border-radius:50%;margin-top:9px;flex-shrink:0;"></span><span style="flex:1;">[핵심 정보 2]</span></li>
+    <li style="display:flex;align-items:flex-start;gap:12px;font-size:15px;color:#334155;line-height:1.8;list-style:none;"><span style="display:inline-block;width:6px;height:6px;min-width:6px;background:{CAT_COLOR};border-radius:50%;margin-top:9px;flex-shrink:0;"></span><span style="flex:1;">[핵심 정보 3]</span></li>
+  </ul>
+  <hr style="border:none;border-top:1px solid #e2e8f0;margin:0 0 20px 0;">
+  <div style="display:flex;flex-wrap:wrap;gap:8px;">
+    <span style="background:{CAT_LIGHT_BG};color:{CAT_COLOR};font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;">#[키워드1]</span>
+    <span style="background:{CAT_LIGHT_BG};color:{CAT_COLOR};font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;">#[키워드2]</span>
+    <span style="background:{CAT_LIGHT_BG};color:{CAT_COLOR};font-size:13px;font-weight:600;padding:4px 12px;border-radius:20px;">#[키워드3]</span>
+  </div>
+</div>
+
+--- 4. 본문 섹션 3개 (절대 생략 금지, H2부터 시작) ---
+각 섹션은 아래 구조를 따른다:
+<div style="margin-bottom:56px;padding-top:40px;border-top:1px solid #e2e8f0;">
+  <h2 style="font-size:clamp(18px,3vw,22px);font-weight:800;color:#1e293b;margin:0 0 8px 0;line-height:1.4;">[제목]</h2>
+  <p style="font-size:15px;color:#94a3b8;font-weight:600;margin:0 0 20px 0;">[서브 문구]</p>
+  <p style="font-size:15px;color:#334155;line-height:1.9;margin-bottom:16px;">[핵심 내용 1~2줄 서술]</p>
+  [내용 성격에 맞는 컴포넌트 1개 이상 — 표/글머리기호 박스/스텝 박스/주의사항 박스 중 선택]
+</div>
+
+▶ 항목 나열·체크리스트 → 글머리기호 박스
+<div style="background:#f8fafc;border-radius:12px;padding:20px 24px;margin:16px 0;">
+  <ul style="list-style:none;padding:0;margin:0;">
+    <li style="display:flex;align-items:flex-start;gap:10px;font-size:15px;color:#334155;line-height:1.8;margin-bottom:8px;"><span style="color:{CAT_COLOR};font-weight:800;flex-shrink:0;">✓</span><span>[항목 내용]</span></li>
+  </ul>
+</div>
+
+▶ 날짜·조건 비교 → 최대 3컬럼 표 (th는 항상 center, 단문 15자 이하 center, 장문 left)
+<div style="overflow-x:auto;margin:16px 0;word-break:keep-all;">
+  <table style="width:100%;border-collapse:collapse;font-size:13px;">
+    <thead><tr style="background:{CAT_COLOR};color:#fff;">
+      <th style="padding:11px 14px;text-align:center;font-weight:700;">[구분]</th>
+      <th style="padding:11px 14px;text-align:center;font-weight:700;">[항목A]</th>
+      <th style="padding:11px 14px;text-align:center;font-weight:700;">[항목B]</th>
+    </tr></thead>
+    <tbody>
+      <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:11px 14px;text-align:center;color:#334155;">[행 라벨]</td><td style="padding:11px 14px;text-align:center;color:#334155;">[값A]</td><td style="padding:11px 14px;text-align:left;color:#334155;">[장문 값B]</td></tr>
+    </tbody>
+  </table>
+</div>
+
+▶ 절차·타임라인 → 스텝 박스
+<div style="margin:16px 0;">
+  <div style="display:flex;align-items:flex-start;gap:14px;margin-bottom:12px;">
+    <div><span style="background:{CAT_COLOR};color:#fff;font-size:13px;font-weight:800;width:28px;height:28px;border-radius:50%;display:flex;align-items:center;justify-content:center;">1</span></div>
+    <div style="padding-top:4px;"><p style="margin:0 0 4px 0;font-size:15px;font-weight:700;color:#1e293b;">[단계명]</p><p style="margin:0;font-size:15px;color:#334155;line-height:1.7;">[단계 설명]</p></div>
+  </div>
+</div>
+
+▶ 주의·마감 임박 → 주의사항 박스
+<div style="background:#fef9c3;border-left:4px solid #eab308;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;">
+  <p style="margin:0 0 8px 0;font-size:13px;font-weight:800;color:#854d0e;">⚠ 주의사항</p>
+  <ul style="list-style:none;padding:0;margin:0;">
+    <li style="font-size:15px;color:#334155;line-height:1.8;margin-bottom:6px;">· [주의 항목]</li>
+  </ul>
+</div>
+
+--- 5. 참고자료 (있는 경우) ---
+<div style="margin-top:48px;padding:24px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;"><h4 style="margin:0 0 14px 0;color:#334155;font-size:16px;font-weight:700;">참고 자료</h4><ul style="list-style:none;padding:0;margin:0;font-size:14px;color:#334155;line-height:2.2;"><li>[출처명 — 원문에 근거가 있을 때만 작성, 없으면 이 블록 생략]</li></ul></div>
+
+--- 6. 면책조항 (맨 끝 필수) ---
+<p style="margin-top:2em;font-size:12px;color:#94a3b8;">본 콘텐츠는 정보 제공 목적으로 작성되었습니다. 정확한 일정·기준은 관련 기관의 공식 공고를 반드시 확인하시기 바랍니다.</p>
+"""
+
+
+# ==========================================
+# Claude 호출
+# ==========================================
+def call_claude(prompt):
+    for attempt in range(3):
+        try:
+            message = client.messages.create(
+                model=MODEL_NAME,
+                max_tokens=8192,
+                messages=[{"role": "user", "content": prompt}],
+            )
+            return message.content[0].text
+        except Exception as e:
+            print(f"Claude 호출 실패 ({attempt + 1}/3): {e}")
+            if attempt < 2:
+                import time
+                time.sleep(10)
+            else:
+                raise
+
+
+def generate_draft(item, event_year):
+    prefix = CATEGORY_PREFIX.get(item["category"], "")
+    title_hint = item["title_template"].format(year=event_year)
+    variable_note = (
+        f"\n[주의] 이 항목의 날짜는 확정값이 아닌 근사치입니다 ({item.get('note', '')}). "
+        "본문에서 특정 일자를 단정하지 말고 '매년 ○월경', '공식 발표 확인 필요' 등으로 서술하세요."
+        if item.get("is_variable") else ""
+    )
+
+    prompt = f"""당신은 daylog.bestwellth.org 반복일정팀 전문 에디터입니다.
+매년 반복되는 생활 이벤트를 실제 독자가 검색하는 시점보다 먼저 콘텐츠화하여 조회수를 선점하는 것이 목적입니다.
+
+[이벤트 정보]
+- 이벤트명: {item['title']}
+- 카테고리: {item['category']} (제목에 반드시 "{prefix}" 접두어 사용)
+- 타겟 독자층: {item['audience']}
+- 대상 연도: {event_year}년
+- 제목 힌트: {title_hint}{variable_note}
+
+[작성 원칙]
+- 제목은 "{prefix}"로 시작, 힌트를 참고하되 자연스럽게 다듬어도 됨
+- H1 태그 절대 사용 금지, 본문은 H2부터 시작
+- 문어체(이다/한다/했다), 구어체·이모티콘 금지 (단, 가이드에 명시된 이모지 아이콘은 허용)
+- HTML을 ```html 코드블록으로 감싸지 말 것 — 순수 HTML만 출력
+- 확인되지 않은 수치·날짜를 단정하지 말 것 — 근거 없으면 "공식 공고 확인 필요"로 표기
+- 표는 컬럼 최대 3개, 단문(15자 이하) 셀은 center, 장문 셀은 left, th는 항상 center
+- 글 반드시 끝까지 완성
+
+{build_daylog_html_guide()}
+
+[SEO정보 탭 — 반드시 출력]
+[FOCUS_KW]3~4단어 롱테일 키워드[/FOCUS_KW]
+[META_DESC]130~155자 자연스러운 문장형 메타 설명 — 해시태그·버튼텍스트 금지[/META_DESC]
+[SLUG]영문 슬러그[/SLUG]
+[EXCERPT]100~150자 발췌문[/EXCERPT]
+[IMAGE_PROMPT]한글로 작성하는 대표 이미지 프롬프트 1개. 실사 사진 스타일, 텍스트·워터마크·로고 없이, 특정 브랜드·인물 식별 불가하도록 작성[/IMAGE_PROMPT]
+
+[네이버블로그 탭 — 반드시 출력]
+[NAVER_SUMMARY]700~900자 분량, 격식 있는 경어체(합니다/습니다 체)로 작성한 네이버 블로그용 요약. 워드프레스 본문과 다른 문장으로 독자적으로 작성[/NAVER_SUMMARY]
+
+[응답 형식]
+[TITLE]{prefix} 제목[/TITLE]
+본문 HTML
+[FOCUS_KW]...[/FOCUS_KW][META_DESC]...[/META_DESC][SLUG]...[/SLUG][EXCERPT]...[/EXCERPT][IMAGE_PROMPT]...[/IMAGE_PROMPT]
+[NAVER_SUMMARY]...[/NAVER_SUMMARY]"""
+
+    return call_claude(prompt)
+
+
+# ==========================================
+# 파싱 + 발행(draft 저장)
+# ==========================================
+def parse_and_save_draft(raw, item, event_year):
+    def extract(tag, default=""):
+        m = re.search(rf'\[{tag}\](.*?)\[/{tag}\]', raw, re.DOTALL)
+        return m.group(1).strip() if m else default
+
+    title         = extract("TITLE", f"{CATEGORY_PREFIX.get(item['category'], '')} {item['title']}")
+    focus_kw      = extract("FOCUS_KW", "")
+    meta_desc     = extract("META_DESC", "")
+    slug          = extract("SLUG", item["id"])
+    excerpt       = extract("EXCERPT", "")
+    image_prompt  = extract("IMAGE_PROMPT", "")
+    naver_summary = extract("NAVER_SUMMARY", "")
+
+    # 슬러그 안전장치 — 한글 포함 시 영문 슬러그로 대체
+    import unicodedata
+    def is_korean(c):
+        return unicodedata.category(c) == "Lo" and ord(c) >= 0xAC00
+    if any(is_korean(c) for c in slug) or len(slug) < 3:
+        slug = f"{item['id']}-{event_year}"
+
+    body = raw
+    for tag in ["TITLE", "FOCUS_KW", "META_DESC", "SLUG", "EXCERPT", "IMAGE_PROMPT", "NAVER_SUMMARY"]:
+        body = re.sub(rf'\[{tag}\].*?\[/{tag}\]\n?', '', body, flags=re.DOTALL)
+    body = body.strip()
+    body = re.sub(r'^```[a-zA-Z]*\n?', '', body, flags=re.MULTILINE)
+    body = re.sub(r'\n?```\s*$', '', body, flags=re.MULTILINE)
+    body = body.strip()
+
+    result = wp_create_draft(title=title, content=body, excerpt=excerpt, slug=slug)
+    if not result:
+        print(f"[{item['id']}] 임시글 저장 실패 — 건너뜀")
+        return False
+
+    post_id = result.get("id", "")
+    edit_url = f"{DAYLOG_WP_SITE_URL}/wp-admin/post.php?post={post_id}&action=edit"
+    print(f"[{item['id']}] 임시글 저장 완료! ID: {post_id}")
+
+    if post_id and focus_kw:
+        wp_update_rank_math(post_id, focus_kw, meta_desc)
+
+    send_telegram(
+        f"<b>daylog.bestwellth.org 임시글 저장됨</b>\n\n"
+        f"카테고리: {item['category']} · 대상: {item['audience']}\n"
+        f"제목: {title}\n"
+        f"포커스 키워드: {focus_kw}\n"
+        f"이미지 프롬프트: {image_prompt}\n\n"
+        f"편집(검토 후 발행): {edit_url}\n\n"
+        f"— 네이버 블로그용 요약 —\n{naver_summary}"
+    )
+    return True
+
+
+# ==========================================
+# 메인 실행
+# ==========================================
+def run():
+    print("daylog.bestwellth.org 반복일정 자동 초안 생성 시작...\n")
+    data = load_calendar()
+    due_items = find_due_items(data)
+
+    if not due_items:
+        print("오늘 리드타임 도달 항목 없음 — 종료")
+        return
+
+    print(f"리드타임 도달 항목 {len(due_items)}건 발견\n")
+    updated = False
+    for item, event_year, event_date in due_items:
+        print(f"--- [{item['id']}] {item['title']} (대상 연도: {event_year}, 이벤트일: {event_date}) ---")
+        try:
+            raw = generate_draft(item, event_year)
+            ok = parse_and_save_draft(raw, item, event_year)
+            if ok:
+                item["last_published_year"] = event_year
+                updated = True
+        except Exception as e:
+            print(f"[{item['id']}] 처리 실패: {e}")
+
+    if updated:
+        save_calendar(data)
+        print("\ncalendar_schema.json의 last_published_year 갱신 완료")
+
+
+if __name__ == "__main__":
+    run()
