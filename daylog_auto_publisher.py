@@ -90,13 +90,21 @@ def solar_date_for_year(item, year):
 
 
 def find_due_items(data):
-    """오늘(KST) 기준 리드타임 도달 + 해당 연도 미발행 항목 목록 반환. (item, event_year, event_date) 튜플 리스트."""
+    """
+    오늘(KST) 기준 [발행일, 이벤트일) 윈도우 안에 있고 해당 연도 미발행인 항목 목록 반환.
+    (item, event_year, event_date) 튜플 리스트.
+
+    정확히 발행일 당일에만 매칭하지 않고 윈도우로 판단하는 이유:
+    GitHub Actions가 하루 실패/스킵되더라도 다음 실행에서 자동으로 따라잡기 위함.
+    단, 이벤트 당일(event_date)은 윈도우에서 제외한다 — 반드시 이벤트가 오기 전에 작성하고,
+    윈도우를 통째로 놓쳤다면 당일·이후에 뒤늦게 쓰지 않고 다음 해로 넘긴다.
+    """
     today = today_kst()
     due = []
     for item in data.get("items", []):
         if item.get("site_target") != SITE_TARGET:
             continue
-        for candidate_year in (today.year, today.year + 1, today.year - 1):
+        for candidate_year in (today.year - 1, today.year, today.year + 1):
             try:
                 event_date = solar_date_for_year(item, candidate_year)
             except Exception as e:
@@ -104,11 +112,11 @@ def find_due_items(data):
                 continue
             lead = item.get("lead_time_days", 0)
             publish_date = event_date - timedelta(days=lead)
-            if publish_date == today:
+            if publish_date <= today < event_date:
                 if item.get("last_published_year") == event_date.year:
                     print(f"[{item['id']}] {event_date.year}년분 이미 발행됨 — 스킵")
-                    break
-                due.append((item, event_date.year, event_date))
+                else:
+                    due.append((item, event_date.year, event_date))
                 break
     return due
 
@@ -278,13 +286,47 @@ def call_claude(prompt):
                 raise
 
 
-def generate_draft(item, event_year):
+def verify_event_facts(item, event_year):
+    """
+    본문을 쓰기 전 날짜·사실 정확성을 자체 점검하는 별도 호출.
+    특히 is_variable(근사 날짜) 항목에서 모델이 확신 없는 날짜를 단정해서 쓰지 않도록,
+    작성 전에 스스로 확신 수준을 평가하게 한다.
+    """
+    calendar_label = "음력" if item.get("calendar_type") == "lunar" else "양력"
+    prompt = f"""당신은 daylog.bestwellth.org 팩트체크 담당자입니다.
+아래 반복 이벤트 기사를 쓰기 전에, 알고 있는 지식 범위 내에서 날짜·핵심 사실의 정확성을 스스로 점검하세요.
+이 단계는 본문 작성이 아니라 사전 검증입니다.
+
+[이벤트]
+- 이름: {item['title']}
+- 등록된 날짜: {calendar_label} {item['date']} ({event_year}년 기준)
+- 근사치 여부(is_variable): {item.get('is_variable')}
+- 등록된 메모: {item.get('note') or '(없음)'}
+
+[점검할 것]
+1. 이 날짜(또는 날짜 패턴)가 실제 사실과 맞는가?
+2. {event_year}년 기준 정확한 날짜를 확신하는가, 아니면 근사치로만 알고 있는가?
+3. 본문에서 특정 수치·날짜를 단정하면 안 되는 지점이 있다면 무엇인가?
+
+[응답 형식 — 이 태그만 사용, 다른 설명 금지]
+[CONFIDENCE]high|medium|low[/CONFIDENCE]
+[VERIFICATION_NOTE]본문 작성 시 반영할 점검 결과를 2~3문장으로[/VERIFICATION_NOTE]"""
+    return call_claude(prompt)
+
+
+def generate_draft(item, event_year, verification_note="", confidence="medium"):
     prefix = CATEGORY_PREFIX.get(item["category"], "")
     title_hint = item["title_template"].format(year=event_year)
     variable_note = (
         f"\n[주의] 이 항목의 날짜는 확정값이 아닌 근사치입니다 ({item.get('note', '')}). "
         "본문에서 특정 일자를 단정하지 말고 '매년 ○월경', '공식 발표 확인 필요' 등으로 서술하세요."
         if item.get("is_variable") else ""
+    )
+    fact_check_note = (
+        f"\n[사전 팩트체크 결과 — 반드시 반영]\n확신 수준: {confidence}\n{verification_note}\n"
+        + ("확신 수준이 낮으므로 구체적 날짜·수치를 단정하지 말고 '공식 공고 확인 필요' 표현을 적극 사용하세요.\n"
+           if confidence == "low" else "")
+        if verification_note else ""
     )
 
     prompt = f"""당신은 daylog.bestwellth.org 반복일정팀 전문 에디터입니다.
@@ -296,7 +338,7 @@ def generate_draft(item, event_year):
 - 타겟 독자층: {item['audience']}
 - 대상 연도: {event_year}년
 - 제목 힌트: {title_hint}{variable_note}
-
+{fact_check_note}
 [작성 원칙]
 - 제목은 "{prefix}"로 시작, 힌트를 참고하되 자연스럽게 다듬어도 됨
 - H1 태그 절대 사용 금지, 본문은 H2부터 시작
@@ -330,7 +372,7 @@ def generate_draft(item, event_year):
 # ==========================================
 # 파싱 + 발행(draft 저장)
 # ==========================================
-def parse_and_save_draft(raw, item, event_year):
+def parse_and_save_draft(raw, item, event_year, confidence="medium"):
     def extract(tag, default=""):
         m = re.search(rf'\[{tag}\](.*?)\[/{tag}\]', raw, re.DOTALL)
         return m.group(1).strip() if m else default
@@ -370,12 +412,17 @@ def parse_and_save_draft(raw, item, event_year):
     if post_id and focus_kw:
         wp_update_rank_math(post_id, focus_kw, meta_desc)
 
+    confidence_warning = (
+        f"\n⚠ 날짜·사실 확신 수준: {confidence.upper()} — 발행 전 직접 확인 권장\n"
+        if confidence != "high" else ""
+    )
     send_telegram(
         f"<b>daylog.bestwellth.org 임시글 저장됨</b>\n\n"
         f"카테고리: {item['category']} · 대상: {item['audience']}\n"
         f"제목: {title}\n"
         f"포커스 키워드: {focus_kw}\n"
-        f"이미지 프롬프트: {image_prompt}\n\n"
+        f"이미지 프롬프트: {image_prompt}\n"
+        f"{confidence_warning}\n"
         f"편집(검토 후 발행): {edit_url}\n\n"
         f"— 네이버 블로그용 요약 —\n{naver_summary}"
     )
@@ -399,8 +446,15 @@ def run():
     for item, event_year, event_date in due_items:
         print(f"--- [{item['id']}] {item['title']} (대상 연도: {event_year}, 이벤트일: {event_date}) ---")
         try:
-            raw = generate_draft(item, event_year)
-            ok = parse_and_save_draft(raw, item, event_year)
+            verify_raw = verify_event_facts(item, event_year)
+            confidence = re.search(r'\[CONFIDENCE\](.*?)\[/CONFIDENCE\]', verify_raw, re.DOTALL)
+            confidence = confidence.group(1).strip().lower() if confidence else "medium"
+            note_m = re.search(r'\[VERIFICATION_NOTE\](.*?)\[/VERIFICATION_NOTE\]', verify_raw, re.DOTALL)
+            verification_note = note_m.group(1).strip() if note_m else ""
+            print(f"[{item['id']}] 자체검증 결과 — 확신 수준: {confidence}")
+
+            raw = generate_draft(item, event_year, verification_note, confidence)
+            ok = parse_and_save_draft(raw, item, event_year, confidence)
             if ok:
                 item["last_published_year"] = event_year
                 updated = True
