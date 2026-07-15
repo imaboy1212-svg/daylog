@@ -262,6 +262,10 @@ def build_daylog_html_guide():
   </ul>
 </div>
 
+▶ 참고자료에 실제 공식 사이트가 있는 주제(정부·공공기관 서비스 등) → 공식 사이트 바로가기 CTA
+※ 참고자료 섹션에 이미 적은 것과 동일한 URL만 사용한다 — 새로운 URL을 지어내지 않는다.
+<div style="text-align:center;margin:28px 0;"><div style="display:inline-block;background:{CAT_COLOR};border-radius:8px;padding:13px 30px;"><a href="[참고자료의 실제 URL]" target="_blank" rel="noopener noreferrer" style="color:#fff;font-size:15px;font-weight:700;text-decoration:none;">[사이트명]에서 확인하기</a></div></div>
+
 ▶ 상품·숙소 추천이 실제로 자연스러운 주제(계절가전·생활용품·여행숙소 등) → 제휴 CTA 카드
 ※ 이 컴포넌트는 광고 클릭을 유도하는 문구가 아니라, 본문에서 실제로 추천한 상품/숙소를 보러 가는 정상적인 제휴 링크다.
 ※ 실제 URL은 알 수 없으므로 절대 임의로 만들어내지 말고 아래 placeholder를 그대로 사용한다 — 코로님이 발행 전 실제 제휴 링크로 교체한다.
@@ -358,6 +362,13 @@ def generate_draft(item, event_year, verification_note="", confidence="medium"):
 - 대상 연도: {event_year}년
 - 제목 힌트: {title_hint}{variable_note}
 {fact_check_note}
+[네이버블로그 ↔ 워드프레스 관계 — 반드시 이 순서로 사고할 것]
+같은 내용을 요약·재서술해서 두 채널에 중복 게재하지 않는다. 대신 역할을 분리한다.
+1. 먼저 네이버블로그 글을 "이 이벤트의 전체 개요"로 구상한다 — 언제·누가 대상·무엇을·어떻게 하면 되는지, 순수 텍스트 위주로 폭넓게 다룬다. (예: "재산세 납부기간" 같은 넓은 키워드를 노림)
+2. 그 다음 워드프레스 글은 네이버 글이 다루는 내용 중 **깊이 있게 파고들 가치가 있는 한 부분**(계산 방식, 조건별 차이, 자격 기준 등 구체적 수치·표가 필요한 부분)을 골라 그것만 집중적으로 확장한 파생 글로 작성한다. (예: "재산세 계산법" 같은 좁고 구체적인 키워드를 노림) 네이버 글 전체를 다시 요약하지 않는다.
+3. 두 글이 서로 연결된 시리즈처럼 느껴지도록 자연스러운 연결 문구를 넣는다 — 네이버 글 끝에는 "~부분은 별도로 자세히 다룰 예정입니다" 같은 문장을, 워드프레스 글 도입부에는 "~에 이어 이번에는 ~를 자세히 살펴봅니다" 같은 문장을 자연스럽게 포함한다.
+4. 워드프레스 글에서 다루는 심화 파트(계산법 등)는 매년 바뀌는 세율·비율 같은 구체적 수치를 단정하지 말고, 안정적으로 알려진 구조(공식, 산정 방식, 표준 세율표처럼 자주 바뀌지 않는 부분)를 중심으로 설명한다. 연도별로 조정되는 값은 "공식 사이트에서 확인" 처리한다.
+
 [작성 원칙]
 - 제목은 "{prefix}"로 시작, 힌트를 참고하되 자연스럽게 다듬어도 됨
 - H1 태그 절대 사용 금지, 본문은 H2부터 시작
@@ -368,23 +379,26 @@ def generate_draft(item, event_year, verification_note="", confidence="medium"):
 - 글 반드시 끝까지 완성
 - "클릭해주세요", "광고를 눌러주세요" 같은 광고·링크 클릭 유도 문구 절대 금지 (구글 애드센스 정책 위반 — 계정 정지 사유)
 - 제휴 CTA 카드는 본문 주제와 실제로 관련된 상품·숙소를 추천할 때만 1개 사용, 억지로 넣지 말 것
+- 공식 사이트 CTA 버튼은 참고자료에 실제 출처가 있을 때만, 그 URL을 그대로 재사용해서 1개 사용 가능
 
 {build_daylog_html_guide()}
 
 [SEO정보 탭 — 반드시 출력]
-[FOCUS_KW]3~4단어 롱테일 키워드[/FOCUS_KW]
+[FOCUS_KW]3~4단어 롱테일 키워드 — 워드프레스 글(심화 파트)에 맞는 키워드[/FOCUS_KW]
 [META_DESC]130~155자 자연스러운 문장형 메타 설명 — 해시태그·버튼텍스트 금지[/META_DESC]
 [SLUG]영문 슬러그[/SLUG]
 [EXCERPT]100~150자 발췌문[/EXCERPT]
-[IMAGE_PROMPT]한글로 작성하는 대표 이미지 프롬프트 1개. 실사 사진 스타일, 텍스트·워터마크·로고 없이, 특정 브랜드·인물 식별 불가하도록 작성[/IMAGE_PROMPT]
+[HASHTAGS]검색·공유용 해시태그 5개, "#태그1 #태그2 #태그3 #태그4 #태그5" 형식, 본문에는 넣지 않고 이 태그로만 출력[/HASHTAGS]
+[IMAGE_PROMPT_NAVER_1_1]네이버 카드뉴스용 1:1 정사각형 인포그래픽 이미지 프롬프트, 한글로 작성. 이 글의 핵심 정보(일정·구분 등)를 시각적 레이아웃(아이콘, 색상 블록, 간단한 숫자)으로 표현하도록 구성 묘사 위주로 작성하고, 정확한 한글 문장을 이미지 안에 렌더링해달라고 요청하지 않는다(AI 이미지 생성기가 긴 한글 텍스트를 정확히 그리지 못하므로, 실제 문구는 디자인 툴에서 별도로 얹는다는 전제로 레이아웃만 묘사). 텍스트·워터마크·로고·특정 브랜드 식별 요소는 넣지 않는다[/IMAGE_PROMPT_NAVER_1_1]
+[IMAGE_PROMPT_WP_16_9]워드프레스 카드뉴스·대표이미지용 16:9 가로형 인포그래픽 이미지 프롬프트, 한글로 작성. 워드프레스 글(심화 파트)의 핵심 내용을 시각적 레이아웃으로 표현. 위와 동일하게 정확한 한글 텍스트 렌더링은 요청하지 않고 구성·아이콘·색상 중심으로 묘사, 텍스트·워터마크·로고 없이 작성[/IMAGE_PROMPT_WP_16_9]
 
-[네이버블로그 탭 — 반드시 출력]
-[NAVER_SUMMARY]700~900자 분량, 격식 있는 경어체(합니다/습니다 체)로 작성한 네이버 블로그용 요약. 워드프레스 본문과 다른 문장으로 독자적으로 작성[/NAVER_SUMMARY]
+[네이버블로그 탭 — 반드시 출력, 전체 개요]
+[NAVER_SUMMARY]700~900자 분량, 순수 텍스트 위주(HTML 태그 없이), 격식 있는 경어체(합니다/습니다 체)로 작성한 이벤트 전체 개요. 워드프레스 심화 파트와 겹치지 않게, 언제·대상·무엇을·어떻게 중심으로 작성[/NAVER_SUMMARY]
 
 [응답 형식]
 [TITLE]{prefix} 제목[/TITLE]
-본문 HTML
-[FOCUS_KW]...[/FOCUS_KW][META_DESC]...[/META_DESC][SLUG]...[/SLUG][EXCERPT]...[/EXCERPT][IMAGE_PROMPT]...[/IMAGE_PROMPT]
+본문 HTML (워드프레스용, 네이버 개요의 심화 파생 글)
+[FOCUS_KW]...[/FOCUS_KW][META_DESC]...[/META_DESC][SLUG]...[/SLUG][EXCERPT]...[/EXCERPT][HASHTAGS]...[/HASHTAGS][IMAGE_PROMPT_NAVER_1_1]...[/IMAGE_PROMPT_NAVER_1_1][IMAGE_PROMPT_WP_16_9]...[/IMAGE_PROMPT_WP_16_9]
 [NAVER_SUMMARY]...[/NAVER_SUMMARY]"""
 
     return call_claude(prompt)
@@ -398,13 +412,15 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
         m = re.search(rf'\[{tag}\](.*?)\[/{tag}\]', raw, re.DOTALL)
         return m.group(1).strip() if m else default
 
-    title         = extract("TITLE", f"{CATEGORY_PREFIX.get(item['category'], '')} {item['title']}")
-    focus_kw      = extract("FOCUS_KW", "")
-    meta_desc     = extract("META_DESC", "")
-    slug          = extract("SLUG", item["id"])
-    excerpt       = extract("EXCERPT", "")
-    image_prompt  = extract("IMAGE_PROMPT", "")
-    naver_summary = extract("NAVER_SUMMARY", "")
+    title           = extract("TITLE", f"{CATEGORY_PREFIX.get(item['category'], '')} {item['title']}")
+    focus_kw        = extract("FOCUS_KW", "")
+    meta_desc       = extract("META_DESC", "")
+    slug            = extract("SLUG", item["id"])
+    excerpt         = extract("EXCERPT", "")
+    hashtags        = extract("HASHTAGS", "")
+    image_naver_1_1 = extract("IMAGE_PROMPT_NAVER_1_1", "")
+    image_wp_16_9   = extract("IMAGE_PROMPT_WP_16_9", "")
+    naver_summary   = extract("NAVER_SUMMARY", "")
 
     # 슬러그 안전장치 — 한글 포함 시 영문 슬러그로 대체
     import unicodedata
@@ -414,7 +430,8 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
         slug = f"{item['id']}-{event_year}"
 
     body = raw
-    for tag in ["TITLE", "FOCUS_KW", "META_DESC", "SLUG", "EXCERPT", "IMAGE_PROMPT", "NAVER_SUMMARY"]:
+    for tag in ["TITLE", "FOCUS_KW", "META_DESC", "SLUG", "EXCERPT", "HASHTAGS",
+                "IMAGE_PROMPT_NAVER_1_1", "IMAGE_PROMPT_WP_16_9", "NAVER_SUMMARY"]:
         body = re.sub(rf'\[{tag}\].*?\[/{tag}\]\n?', '', body, flags=re.DOTALL)
     body = body.strip()
     body = re.sub(r'^```[a-zA-Z]*\n?', '', body, flags=re.MULTILINE)
@@ -442,10 +459,12 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
         f"카테고리: {item['category']} · 대상: {item['audience']}\n"
         f"제목: {title}\n"
         f"포커스 키워드: {focus_kw}\n"
-        f"이미지 프롬프트: {image_prompt}\n"
+        f"해시태그: {hashtags}\n"
+        f"이미지 프롬프트(네이버 1:1): {image_naver_1_1}\n"
+        f"이미지 프롬프트(워드프레스 16:9): {image_wp_16_9}\n"
         f"{confidence_warning}\n"
         f"편집(검토 후 발행): {edit_url}\n\n"
-        f"— 네이버 블로그용 요약 —\n{naver_summary}"
+        f"— 네이버 블로그용 개요 —\n{naver_summary}"
     )
     return True
 
