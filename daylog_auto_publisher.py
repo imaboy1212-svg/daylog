@@ -212,6 +212,10 @@ def build_daylog_html_guide():
   </div>
 </div>
 
+--- 3-1. 애드센스 슬롯 A (핵심 정보 요약 박스 아래, 본문 시작 전 — 그대로 복사) ---
+※ daylog 사이트가 애드센스 승인을 받으면 아래 placeholder(ca-pub-XXXXXXXXXXXXXXXX, slot XXXXXXXXXX)를 코로님이 실제 값으로 교체한다. 클릭을 유도하는 문구는 절대 추가하지 않는다.
+<div style="margin:32px 0;"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script></div>
+
 --- 4. 본문 섹션 3개 (절대 생략 금지, H2부터 시작) ---
 각 섹션은 아래 구조를 따른다:
 <div style="margin-bottom:56px;padding-top:40px;border-top:1px solid #e2e8f0;">
@@ -258,8 +262,22 @@ def build_daylog_html_guide():
   </ul>
 </div>
 
+▶ 상품·숙소 추천이 실제로 자연스러운 주제(계절가전·생활용품·여행숙소 등) → 제휴 CTA 카드
+※ 이 컴포넌트는 광고 클릭을 유도하는 문구가 아니라, 본문에서 실제로 추천한 상품/숙소를 보러 가는 정상적인 제휴 링크다.
+※ 실제 URL은 알 수 없으므로 절대 임의로 만들어내지 말고 아래 placeholder를 그대로 사용한다 — 코로님이 발행 전 실제 제휴 링크로 교체한다.
+<div style="background:{CAT_LIGHT_BG};border:1px solid {CAT_LIGHT_BORDER};border-radius:14px;padding:20px 22px;margin:20px 0;">
+  <p style="margin:0 0 6px 0;font-size:13px;font-weight:800;color:{CAT_DARK};">🛒 [추천 상품/숙소명]</p>
+  <p style="margin:0 0 14px 0;font-size:14px;color:#334155;line-height:1.7;">[이 글 맥락에서 실제로 도움되는 이유 1~2줄]</p>
+  <a href="{{COUPANG_AFFILIATE_LINK}}" target="_blank" rel="noopener noreferrer nofollow sponsored" style="display:inline-block;background:{CAT_COLOR};color:#fff;font-size:14px;font-weight:700;padding:10px 20px;border-radius:8px;text-decoration:none;">쿠팡에서 확인하기</a>
+</div>
+(여행·숙박이 주제인 글은 위 카드를 숙박 버전으로: href="{{ACCOMMODATION_AFFILIATE_LINK}}", 버튼 텍스트 "숙소 예약하러 가기")
+※ 이 카드는 주제와 무관하게 매 글에 넣지 말고, 실제로 상품/숙소 추천이 자연스러운 글에서만 1개 사용한다.
+
 --- 5. 참고자료 (있는 경우) ---
 <div style="margin-top:48px;padding:24px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;"><h4 style="margin:0 0 14px 0;color:#334155;font-size:16px;font-weight:700;">참고 자료</h4><ul style="list-style:none;padding:0;margin:0;font-size:14px;color:#334155;line-height:2.2;"><li>[출처명 — 원문에 근거가 있을 때만 작성, 없으면 이 블록 생략]</li></ul></div>
+
+--- 5-1. 애드센스 슬롯 B (참고자료 아래, 면책조항 위 — 그대로 복사) ---
+<div style="margin:32px 0;"><ins class="adsbygoogle" style="display:block" data-ad-format="autorelaxed" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script></div>
 
 --- 6. 면책조항 (맨 끝 필수) ---
 <p style="margin-top:2em;font-size:12px;color:#94a3b8;">본 콘텐츠는 정보 제공 목적으로 작성되었습니다. 정확한 일정·기준은 관련 기관의 공식 공고를 반드시 확인하시기 바랍니다.</p>
@@ -348,6 +366,8 @@ def generate_draft(item, event_year, verification_note="", confidence="medium"):
 - 확인되지 않은 수치·날짜를 단정하지 말 것 — 근거 없으면 "공식 공고 확인 필요"로 표기
 - 표는 컬럼 최대 3개, 단문(15자 이하) 셀은 center, 장문 셀은 left, th는 항상 center
 - 글 반드시 끝까지 완성
+- "클릭해주세요", "광고를 눌러주세요" 같은 광고·링크 클릭 유도 문구 절대 금지 (구글 애드센스 정책 위반 — 계정 정지 사유)
+- 제휴 CTA 카드는 본문 주제와 실제로 관련된 상품·숙소를 추천할 때만 1개 사용, 억지로 넣지 말 것
 
 {build_daylog_html_guide()}
 
