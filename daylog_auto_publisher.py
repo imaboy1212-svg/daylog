@@ -241,10 +241,12 @@ def build_daylog_html_guide():
   </ul>
 </div>
 
---- 3-3. 애드센스 슬롯 A (목차 바로 아래, 본문 시작 전 — 그대로 복사) ---
-※ 대표 이미지 placeholder 박스는 더 이상 본문에 넣지 않는다 — SEO정보 탭의 이미지 프롬프트만으로 충분하며, 본문에 안내 박스를 넣지 말라는 코로님 지시.
-※ daylog 사이트가 애드센스 승인을 받으면 아래 placeholder(ca-pub-XXXXXXXXXXXXXXXX, slot XXXXXXXXXX)를 코로님이 실제 값으로 교체한다. 클릭을 유도하는 문구는 절대 추가하지 않는다.
-<div style="margin:32px 0;"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script></div>
+--- 3-3. 애드센스 슬롯 A — 디스플레이 광고 (목차 바로 아래, 본문 시작 전 — 아래 코드를 정확히 그대로 복사) ---
+※ daylog 애드센스 승인 완료. 아래는 실제 광고 코드이므로 값을 절대 임의로 바꾸지 않는다. 클릭을 유도하는 문구는 절대 추가하지 않는다.
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6858780475640766" crossorigin="anonymous"></script>
+<!-- 디스플레이광고 -->
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-6858780475640766" data-ad-slot="1825484842" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script>
 
 --- 4. 본문 섹션 3개 (절대 생략 금지, H2부터 시작, 각 h2에 id="section-N" 부여) ---
 각 섹션은 아래 구조를 따른다 (id="section-N"은 목차 앵커와 반드시 일치시킬 것):
@@ -254,6 +256,17 @@ def build_daylog_html_guide():
   <p style="font-size:15px;color:#334155;line-height:1.9;margin-bottom:16px;">[핵심 내용 서술 — 섹션당 최소 3~4문장 이상으로 충분히 설명할 것]</p>
   [내용 성격에 맞는 컴포넌트 1개 이상 — 표/글머리기호 박스/스텝 박스/주의사항 박스 중 선택]
 </div>
+
+--- 4-1. 애드센스 슬롯 B — 가로형 인피드 (섹션 1 바로 아래, 섹션 2 시작 전 — 아래 코드를 정확히 그대로 복사) ---
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6858780475640766" crossorigin="anonymous"></script>
+<!-- 가로형 인피드 -->
+<ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-6858780475640766" data-ad-slot="5165217836" data-ad-format="auto" data-full-width-responsive="true"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script>
+
+--- 4-2. 애드센스 슬롯 C — 인아티클 플루이드 (섹션 2 바로 아래, 섹션 3 시작 전 — 아래 코드를 정확히 그대로 복사) ---
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6858780475640766" crossorigin="anonymous"></script>
+<ins class="adsbygoogle" style="display:block; text-align:center;" data-ad-layout="in-article" data-ad-format="fluid" data-ad-client="ca-pub-6858780475640766" data-ad-slot="8908458700"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script>
 
 ▶ 항목 나열·체크리스트 → 글머리기호 박스
 <div style="background:#f8fafc;border-radius:12px;padding:20px 24px;margin:16px 0;">
@@ -311,11 +324,13 @@ def build_daylog_html_guide():
 ※ 내부 링크는 daylog.bestwellth.org 홈으로 최소 1개 넣는다 (사이트 초기라 다른 글이 적으므로 홈 링크로 충분). 새 URL을 지어내지 말 것 — 아래 홈 링크만 사용.
 <div style="margin-top:48px;padding:24px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;"><h4 style="margin:0 0 14px 0;color:#334155;font-size:16px;font-weight:700;">참고 자료</h4><ul style="list-style:none;padding:0;margin:0;font-size:14px;color:#334155;line-height:2.2;"><li>[출처명 — 원문에 근거가 있을 때만 작성, 없으면 이 줄만 생략]</li><li><a href="https://daylog.bestwellth.org/" style="color:{CAT_COLOR} !important;text-decoration:none;">daylog에서 반복일정 콘텐츠 더 보기</a></li></ul></div>
 
---- 5-1. 애드센스 슬롯 B (참고자료 아래, 면책조항 위 — 그대로 복사) ---
-<div style="margin:32px 0;"><ins class="adsbygoogle" style="display:block" data-ad-format="autorelaxed" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script></div>
-
---- 6. 면책조항 (맨 끝 필수) ---
+--- 6. 면책조항 ---
 <p style="margin-top:2em;font-size:12px;color:#94a3b8;">본 콘텐츠는 정보 제공 목적으로 작성되었습니다. 정확한 일정·기준은 관련 기관의 공식 공고를 반드시 확인하시기 바랍니다.</p>
+
+--- 7. 애드센스 슬롯 D — 오토릴렉스드 (면책조항 바로 아래, 글의 맨 마지막 — 아래 코드를 정확히 그대로 복사) ---
+<script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6858780475640766" crossorigin="anonymous"></script>
+<ins class="adsbygoogle" style="display:block" data-ad-format="autorelaxed" data-ad-client="ca-pub-6858780475640766" data-ad-slot="3873632172"></ins>
+<script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script>
 """
 
 
