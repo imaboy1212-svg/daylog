@@ -241,14 +241,8 @@ def build_daylog_html_guide():
   </ul>
 </div>
 
---- 3-2. 대표 이미지 placeholder (목차 아래 — Rank Math 리치미디어·이미지 alt 체크 대응) ---
-※ 실제 이미지 파일이 아직 없으므로 <img> 태그를 절대 쓰지 않는다 — src가 없는 <img>는 깨진 이미지 아이콘으로 보인다. 대신 안내 박스만 넣는다. 코로님이 SEO정보 탭 이미지 프롬프트로 실제 이미지를 만들면, 이 박스를 <img> 태그로 직접 교체한다.
-<div style="margin:0 0 32px 0;padding:32px 24px;background:#f8fafc;border:2px dashed {CAT_LIGHT_BORDER};border-radius:16px;text-align:center;">
-  <p style="margin:0 0 8px 0;font-size:14px;font-weight:700;color:{CAT_COLOR};">🖼 대표 이미지를 여기에 추가하세요</p>
-  <p style="margin:0;font-size:13px;color:#64748b;">alt 텍스트로 사용: "[포커스 키워드를 포함한 대체 텍스트]"</p>
-</div>
-
---- 3-3. 애드센스 슬롯 A (그 아래, 본문 시작 전 — 그대로 복사) ---
+--- 3-3. 애드센스 슬롯 A (목차 바로 아래, 본문 시작 전 — 그대로 복사) ---
+※ 대표 이미지 placeholder 박스는 더 이상 본문에 넣지 않는다 — SEO정보 탭의 이미지 프롬프트만으로 충분하며, 본문에 안내 박스를 넣지 말라는 코로님 지시.
 ※ daylog 사이트가 애드센스 승인을 받으면 아래 placeholder(ca-pub-XXXXXXXXXXXXXXXX, slot XXXXXXXXXX)를 코로님이 실제 값으로 교체한다. 클릭을 유도하는 문구는 절대 추가하지 않는다.
 <div style="margin:32px 0;"><ins class="adsbygoogle" style="display:block" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX" data-ad-format="auto" data-full-width-responsive="true"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script></div>
 
