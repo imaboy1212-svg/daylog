@@ -1,9 +1,8 @@
 name: Daylog Auto Publisher (daylog.bestwellth.org)
+# 매일 자동 실행은 Claude Code 루틴으로 대체됨 (사실 검증을 직접 하면서 콘텐츠를 작성하기 위함).
+# 이 워크플로는 수동 실행(workflow_dispatch)용으로만 남겨둠.
 on:
   workflow_dispatch: {}
-  schedule:
-    # 매일 07:00 KST (UTC 22:00, 전날) 실행
-    - cron: '0 22 * * *'
 permissions:
   contents: write
 jobs:
