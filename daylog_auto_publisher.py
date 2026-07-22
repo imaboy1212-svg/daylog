@@ -226,9 +226,9 @@ def build_daylog_html_guide():
 <div style="background:#f8fafc;border-radius:12px;padding:20px 24px;margin-bottom:32px;">
   <p style="margin:0 0 12px 0;font-size:13px;font-weight:800;color:#94a3b8;letter-spacing:0.05em;">목차</p>
   <ul style="list-style:none;padding:0;margin:0;">
-    <li style="margin-bottom:8px;"><a href="#section-1" style="font-size:14px;color:{CAT_COLOR};text-decoration:none;font-weight:600;">1. [섹션1 제목]</a></li>
-    <li style="margin-bottom:8px;"><a href="#section-2" style="font-size:14px;color:{CAT_COLOR};text-decoration:none;font-weight:600;">2. [섹션2 제목]</a></li>
-    <li><a href="#section-3" style="font-size:14px;color:{CAT_COLOR};text-decoration:none;font-weight:600;">3. [섹션3 제목]</a></li>
+    <li style="margin-bottom:8px;"><a href="#section-1" style="font-size:14px;color:{CAT_COLOR} !important;text-decoration:none;font-weight:600;">1. [섹션1 제목]</a></li>
+    <li style="margin-bottom:8px;"><a href="#section-2" style="font-size:14px;color:{CAT_COLOR} !important;text-decoration:none;font-weight:600;">2. [섹션2 제목]</a></li>
+    <li><a href="#section-3" style="font-size:14px;color:{CAT_COLOR} !important;text-decoration:none;font-weight:600;">3. [섹션3 제목]</a></li>
   </ul>
 </div>
 
@@ -288,7 +288,7 @@ def build_daylog_html_guide():
 
 ▶ 참고자료에 실제 공식 사이트가 있는 주제(정부·공공기관 서비스 등) → 공식 사이트 바로가기 CTA
 ※ 참고자료 섹션에 이미 적은 것과 동일한 URL만 사용한다 — 새로운 URL을 지어내지 않는다.
-<div style="text-align:center;margin:28px 0;"><div style="display:inline-block;background:{CAT_COLOR};border-radius:8px;padding:13px 30px;"><a href="[참고자료의 실제 URL]" target="_blank" rel="noopener noreferrer" style="color:#fff;font-size:15px;font-weight:700;text-decoration:none;">[사이트명]에서 확인하기</a></div></div>
+<div style="text-align:center;margin:28px 0;"><div style="display:inline-block;background:{CAT_COLOR};border-radius:8px;padding:13px 30px;"><a href="[참고자료의 실제 URL]" target="_blank" rel="noopener noreferrer" style="color:#fff !important;font-size:15px;font-weight:700;text-decoration:none;">[사이트명]에서 확인하기</a></div></div>
 
 ▶ 상품·숙소 추천이 실제로 자연스러운 주제(계절가전·생활용품·여행숙소 등) → 제휴 CTA 카드
 ※ 이 컴포넌트는 광고 클릭을 유도하는 문구가 아니라, 본문에서 실제로 추천한 상품/숙소를 보러 가는 정상적인 제휴 링크다.
@@ -296,14 +296,14 @@ def build_daylog_html_guide():
 <div style="background:{CAT_LIGHT_BG};border:1px solid {CAT_LIGHT_BORDER};border-radius:14px;padding:20px 22px;margin:20px 0;">
   <p style="margin:0 0 6px 0;font-size:13px;font-weight:800;color:{CAT_DARK};">🛒 [추천 상품/숙소명]</p>
   <p style="margin:0 0 14px 0;font-size:14px;color:#334155;line-height:1.7;">[이 글 맥락에서 실제로 도움되는 이유 1~2줄]</p>
-  <a href="{{COUPANG_AFFILIATE_LINK}}" target="_blank" rel="noopener noreferrer nofollow sponsored" style="display:inline-block;background:{CAT_COLOR};color:#fff;font-size:14px;font-weight:700;padding:10px 20px;border-radius:8px;text-decoration:none;">쿠팡에서 확인하기</a>
+  <a href="{{COUPANG_AFFILIATE_LINK}}" target="_blank" rel="noopener noreferrer nofollow sponsored" style="display:inline-block;background:{CAT_COLOR};color:#fff !important;font-size:14px;font-weight:700;padding:10px 20px;border-radius:8px;text-decoration:none;">쿠팡에서 확인하기</a>
 </div>
 (여행·숙박이 주제인 글은 위 카드를 숙박 버전으로: href="{{ACCOMMODATION_AFFILIATE_LINK}}", 버튼 텍스트 "숙소 예약하러 가기")
 ※ 이 카드는 주제와 무관하게 매 글에 넣지 말고, 실제로 상품/숙소 추천이 자연스러운 글에서만 1개 사용한다.
 
 --- 5. 참고자료 (있는 경우) + 내부 링크 1개 (Rank Math 내부링크 체크 대응) ---
 ※ 내부 링크는 daylog.bestwellth.org 홈으로 최소 1개 넣는다 (사이트 초기라 다른 글이 적으므로 홈 링크로 충분). 새 URL을 지어내지 말 것 — 아래 홈 링크만 사용.
-<div style="margin-top:48px;padding:24px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;"><h4 style="margin:0 0 14px 0;color:#334155;font-size:16px;font-weight:700;">참고 자료</h4><ul style="list-style:none;padding:0;margin:0;font-size:14px;color:#334155;line-height:2.2;"><li>[출처명 — 원문에 근거가 있을 때만 작성, 없으면 이 줄만 생략]</li><li><a href="https://daylog.bestwellth.org/" style="color:{CAT_COLOR};text-decoration:none;">daylog에서 반복일정 콘텐츠 더 보기</a></li></ul></div>
+<div style="margin-top:48px;padding:24px;background:#f8fafc;border-radius:12px;border:1px solid #e2e8f0;"><h4 style="margin:0 0 14px 0;color:#334155;font-size:16px;font-weight:700;">참고 자료</h4><ul style="list-style:none;padding:0;margin:0;font-size:14px;color:#334155;line-height:2.2;"><li>[출처명 — 원문에 근거가 있을 때만 작성, 없으면 이 줄만 생략]</li><li><a href="https://daylog.bestwellth.org/" style="color:{CAT_COLOR} !important;text-decoration:none;">daylog에서 반복일정 콘텐츠 더 보기</a></li></ul></div>
 
 --- 5-1. 애드센스 슬롯 B (참고자료 아래, 면책조항 위 — 그대로 복사) ---
 <div style="margin:32px 0;"><ins class="adsbygoogle" style="display:block" data-ad-format="autorelaxed" data-ad-client="ca-pub-XXXXXXXXXXXXXXXX" data-ad-slot="XXXXXXXXXX"></ins><script>(adsbygoogle = window.adsbygoogle || []).push({{}});</script></div>
