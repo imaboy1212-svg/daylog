@@ -55,6 +55,14 @@ CATEGORY_PREFIX = {
     "여행·쇼핑·이벤트": "[여행·쇼핑·이벤트]",
 }
 
+# 카테고리 → 워드프레스 실제 카테고리 분류(taxonomy) ID (wp-admin 글 > 카테고리에서 생성됨)
+CATEGORY_WP_ID = {
+    "세금·행정마감": 4,
+    "명절·기념일": 5,
+    "생활·집안일": 6,
+    "여행·쇼핑·이벤트": 7,
+}
+
 CAT_COLOR        = "#6366f1"
 CAT_LIGHT_BG     = "#eef2ff"
 CAT_LIGHT_BORDER = "#c7d2fe"
@@ -129,12 +137,14 @@ def wp_auth_header():
     return {"Authorization": f"Basic {token}", "Content-Type": "application/json"}
 
 
-def wp_create_draft(title, content, excerpt, slug):
+def wp_create_draft(title, content, excerpt, slug, category_id=None):
     """status=draft 로만 저장. 발행(publish) 절대 금지 — 코로님이 수동 검토 후 게시."""
     payload = {
         "title": title, "content": content, "excerpt": excerpt,
         "status": "draft", "slug": slug,
     }
+    if category_id:
+        payload["categories"] = [category_id]
     resp = requests.post(
         f"{DAYLOG_WP_SITE_URL}/wp-json/wp/v2/posts",
         headers=wp_auth_header(), json=payload, timeout=15,
@@ -496,7 +506,8 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
     body = re.sub(r'\n?```\s*$', '', body, flags=re.MULTILINE)
     body = body.strip()
 
-    result = wp_create_draft(title=title, content=body, excerpt=excerpt, slug=slug)
+    category_id = CATEGORY_WP_ID.get(item["category"])
+    result = wp_create_draft(title=title, content=body, excerpt=excerpt, slug=slug, category_id=category_id)
     if not result:
         print(f"[{item['id']}] 임시글 저장 실패 — 건너뜀")
         return False
