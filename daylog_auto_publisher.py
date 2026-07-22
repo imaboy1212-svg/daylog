@@ -432,6 +432,7 @@ def generate_draft(item, event_year, verification_note="", confidence="medium"):
 [IMAGE_PROMPT_WP_16_9]워드프레스 대표이미지용 16:9 가로형 이미지 프롬프트, 한글로 작성. 위와 동일하게 추상적 인포그래픽이 아니라 **실사 사진 또는 애니메이션(일러스트) 스타일**의 주제를 직관적으로 보여주는 장면을 화면 중앙에 크게 배치. 배경에 반투명 단색 컬러 오버레이를 입혀 가독성을 확보하고, 중앙에 주제(대제목)와 부제(부제목) 텍스트를 큼직하게 배치한다고 명시하며, 실제 문구를 프롬프트에 그대로 포함한다(텍스트 정확도 제약 없음). 워터마크·로고·특정 브랜드/실존 인물 식별 요소는 넣지 않는다[/IMAGE_PROMPT_WP_16_9]
 
 [네이버블로그 탭 — 반드시 출력, 전체 개요. 반드시 서론-본론-결론 구조로 작성]
+[NAVER_TITLE]네이버블로그용 제목 — 워드프레스 [TITLE]과 반드시 다른 문구로 작성한다. 워드프레스 제목이 심화 파트의 좁고 구체적인 키워드(예: "부가가치세 계산법")를 노린다면, 네이버 제목은 이 이벤트의 넓은 개요 키워드(예: "부가가치세 확정신고 기간과 대상")를 노린다. 카테고리 접두어 "{prefix}"는 붙이지 않는다(네이버는 워드프레스와 별개 채널이라 워드프레스 카테고리 체계를 노출할 필요 없음)[/NAVER_TITLE]
 [NAVER_SUMMARY]900~1200자 분량, 순수 텍스트 위주(HTML 태그 없이), 격식 있는 경어체(합니다/습니다 체)로 작성한 이벤트 전체 개요(총론). 워드프레스 심화 파트(구체적 계산·조건·수치)와 겹치지 않게, 같은 주제를 다른 내용 — 언제·대상·무엇을·어떻게 중심 — 으로 작성. 반드시 아래 3단 구조를 지킨다:
 - 서론: 이 글의 주제를 소개하고, 오늘 어떤 내용을 정리해줄지 예고하면서 "구체적인 [워드프레스 심화 주제]는 블로그에서 이어서 다룬다"는 취지의 문장을 자연스럽게 포함해 워드프레스와 연동되게 한다.
 - 본론: 소주제 2~3개로 구성한다. 각 소주제는 "①/②/③" 같은 기호와 소주제 제목을 한 줄로 적고, 그 아래 본문 내용을 문단으로 서술한다(소주제 제목과 본문 내용을 명확히 구분).
@@ -444,6 +445,7 @@ def generate_draft(item, event_year, verification_note="", confidence="medium"):
 [TITLE]{prefix} 제목[/TITLE]
 본문 HTML (워드프레스용, 네이버 개요의 심화 파생 글)
 [FOCUS_KW]...[/FOCUS_KW][META_DESC]...[/META_DESC][SLUG]...[/SLUG][EXCERPT]...[/EXCERPT][HASHTAGS]...[/HASHTAGS][IMAGE_PROMPT_NAVER_1_1]...[/IMAGE_PROMPT_NAVER_1_1][IMAGE_PROMPT_WP_16_9]...[/IMAGE_PROMPT_WP_16_9]
+[NAVER_TITLE]...[/NAVER_TITLE]
 [NAVER_SUMMARY]...[/NAVER_SUMMARY]
 [IMAGE_PROMPT_SUBTOPIC_1]...[/IMAGE_PROMPT_SUBTOPIC_1][IMAGE_PROMPT_SUBTOPIC_2]...[/IMAGE_PROMPT_SUBTOPIC_2](소주제 개수만큼 반복)"""
 
@@ -466,6 +468,7 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
     hashtags        = extract("HASHTAGS", "")
     image_naver_1_1 = extract("IMAGE_PROMPT_NAVER_1_1", "")
     image_wp_16_9   = extract("IMAGE_PROMPT_WP_16_9", "")
+    naver_title     = extract("NAVER_TITLE", "")
     naver_summary   = extract("NAVER_SUMMARY", "")
 
     # 네이버 소주제별 인포그래픽 이미지 프롬프트 — 소주제 개수가 가변적이라 동적으로 추출
@@ -483,7 +486,7 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
 
     body = raw
     for tag in ["TITLE", "FOCUS_KW", "META_DESC", "SLUG", "EXCERPT", "HASHTAGS",
-                "IMAGE_PROMPT_NAVER_1_1", "IMAGE_PROMPT_WP_16_9", "NAVER_SUMMARY"]:
+                "IMAGE_PROMPT_NAVER_1_1", "IMAGE_PROMPT_WP_16_9", "NAVER_TITLE", "NAVER_SUMMARY"]:
         body = re.sub(rf'\[{tag}\].*?\[/{tag}\]\n?', '', body, flags=re.DOTALL)
     body = re.sub(r'\[IMAGE_PROMPT_SUBTOPIC_\d+\].*?\[/IMAGE_PROMPT_SUBTOPIC_\d+\]\n?', '', body, flags=re.DOTALL)
     body = body.strip()
@@ -514,7 +517,8 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
     send_telegram(
         f"<b>daylog.bestwellth.org 임시글 저장됨</b>\n\n"
         f"카테고리: {item['category']} · 대상: {item['audience']}\n"
-        f"제목: {title}\n"
+        f"제목(워드프레스): {title}\n"
+        f"제목(네이버): {naver_title}\n"
         f"포커스 키워드: {focus_kw}\n"
         f"해시태그: {hashtags}\n"
         f"이미지 프롬프트(네이버 1:1): {image_naver_1_1}\n"
