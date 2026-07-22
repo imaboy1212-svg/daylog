@@ -437,11 +437,15 @@ def generate_draft(item, event_year, verification_note="", confidence="medium"):
 - 본론: 소주제 2~3개로 구성한다. 각 소주제는 "①/②/③" 같은 기호와 소주제 제목을 한 줄로 적고, 그 아래 본문 내용을 문단으로 서술한다(소주제 제목과 본문 내용을 명확히 구분).
 - 결론: 본론 내용을 한 문단으로 요약하고, 워드프레스 심화 글로 자연스럽게 연결되는 CTA 문장을 넣은 뒤 마지막 줄에 "▶ [워드프레스 글 링크]"를 그대로 출력한다(실제 URL은 코로님이 발행 후 직접 채워 넣는다는 전제이므로 URL을 지어내지 않는다).[/NAVER_SUMMARY]
 
+[네이버 소주제별 인포그래픽 이미지 프롬프트 — SEO정보 탭에 표시. NAVER_SUMMARY 본론의 소주제 개수와 정확히 같은 개수만큼 출력할 것]
+소주제마다 [IMAGE_PROMPT_SUBTOPIC_1]...[/IMAGE_PROMPT_SUBTOPIC_1], [IMAGE_PROMPT_SUBTOPIC_2]...[/IMAGE_PROMPT_SUBTOPIC_2] 형식으로 번호를 소주제 순서(①②③)와 맞춰 하나씩 출력한다. 이 프롬프트들은 위 대표 이미지 프롬프트(IMAGE_PROMPT_NAVER_1_1 / WP_16_9)와 스타일이 다르다 — 실사·애니메이션이 아니라 **인포그래픽 방식**(아이콘, 색상 블록, 체크리스트, 막대·화살표 등 데이터 시각화, 짧은 텍스트 라벨)으로 그 소주제 본문 내용의 핵심 정보(날짜·대상·체크리스트·수치 등)를 반영해서 작성한다. 1:1 정사각형, 한글로 작성, 실제 라벨 문구를 그대로 포함해 렌더링을 요청한다(텍스트 정확도 제약 없음), 워터마크·로고·특정 브랜드/실존 인물 식별 요소는 넣지 않는다.
+
 [응답 형식]
 [TITLE]{prefix} 제목[/TITLE]
 본문 HTML (워드프레스용, 네이버 개요의 심화 파생 글)
 [FOCUS_KW]...[/FOCUS_KW][META_DESC]...[/META_DESC][SLUG]...[/SLUG][EXCERPT]...[/EXCERPT][HASHTAGS]...[/HASHTAGS][IMAGE_PROMPT_NAVER_1_1]...[/IMAGE_PROMPT_NAVER_1_1][IMAGE_PROMPT_WP_16_9]...[/IMAGE_PROMPT_WP_16_9]
-[NAVER_SUMMARY]...[/NAVER_SUMMARY]"""
+[NAVER_SUMMARY]...[/NAVER_SUMMARY]
+[IMAGE_PROMPT_SUBTOPIC_1]...[/IMAGE_PROMPT_SUBTOPIC_1][IMAGE_PROMPT_SUBTOPIC_2]...[/IMAGE_PROMPT_SUBTOPIC_2](소주제 개수만큼 반복)"""
 
     return call_claude(prompt)
 
@@ -464,6 +468,12 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
     image_wp_16_9   = extract("IMAGE_PROMPT_WP_16_9", "")
     naver_summary   = extract("NAVER_SUMMARY", "")
 
+    # 네이버 소주제별 인포그래픽 이미지 프롬프트 — 소주제 개수가 가변적이라 동적으로 추출
+    subtopic_images = [
+        m.group(2).strip()
+        for m in re.finditer(r'\[IMAGE_PROMPT_SUBTOPIC_(\d+)\](.*?)\[/IMAGE_PROMPT_SUBTOPIC_\1\]', raw, re.DOTALL)
+    ]
+
     # 슬러그 안전장치 — 한글 포함 시 영문 슬러그로 대체
     import unicodedata
     def is_korean(c):
@@ -475,6 +485,7 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
     for tag in ["TITLE", "FOCUS_KW", "META_DESC", "SLUG", "EXCERPT", "HASHTAGS",
                 "IMAGE_PROMPT_NAVER_1_1", "IMAGE_PROMPT_WP_16_9", "NAVER_SUMMARY"]:
         body = re.sub(rf'\[{tag}\].*?\[/{tag}\]\n?', '', body, flags=re.DOTALL)
+    body = re.sub(r'\[IMAGE_PROMPT_SUBTOPIC_\d+\].*?\[/IMAGE_PROMPT_SUBTOPIC_\d+\]\n?', '', body, flags=re.DOTALL)
     body = body.strip()
     body = re.sub(r'^```[a-zA-Z]*\n?', '', body, flags=re.MULTILINE)
     body = re.sub(r'\n?```\s*$', '', body, flags=re.MULTILINE)
@@ -496,6 +507,10 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
         f"\n⚠ 날짜·사실 확신 수준: {confidence.upper()} — 발행 전 직접 확인 권장\n"
         if confidence != "high" else ""
     )
+    subtopic_image_lines = "".join(
+        f"이미지 프롬프트(네이버 소주제 {i+1}, 인포그래픽): {p}\n"
+        for i, p in enumerate(subtopic_images)
+    )
     send_telegram(
         f"<b>daylog.bestwellth.org 임시글 저장됨</b>\n\n"
         f"카테고리: {item['category']} · 대상: {item['audience']}\n"
@@ -504,6 +519,7 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
         f"해시태그: {hashtags}\n"
         f"이미지 프롬프트(네이버 1:1): {image_naver_1_1}\n"
         f"이미지 프롬프트(워드프레스 16:9): {image_wp_16_9}\n"
+        f"{subtopic_image_lines}"
         f"{confidence_warning}\n"
         f"편집(검토 후 발행): {edit_url}\n\n"
         f"— 네이버 블로그용 개요 —\n{naver_summary}"
