@@ -147,12 +147,21 @@ def wp_create_draft(title, content, excerpt, slug):
 
 
 def wp_update_rank_math(post_id, focus_keyword, meta_description):
-    payload = {"meta": {
-        "rank_math_focus_keyword": focus_keyword,
-        "rank_math_description": meta_description,
-    }}
+    """
+    일반 wp/v2/posts meta 엔드포인트로는 Rank Math 필드가 저장되지 않는다
+    (Rank Math가 REST에 show_in_rest로 등록해두지 않음). 대신 Rank Math가
+    직접 제공하는 전용 REST 엔드포인트(/rankmath/v1/updateMeta)를 사용한다.
+    """
+    payload = {
+        "objectType": "post",
+        "objectID": post_id,
+        "meta": {
+            "rank_math_focus_keyword": focus_keyword,
+            "rank_math_description": meta_description,
+        },
+    }
     resp = requests.post(
-        f"{DAYLOG_WP_SITE_URL}/wp-json/wp/v2/posts/{post_id}",
+        f"{DAYLOG_WP_SITE_URL}/wp-json/rankmath/v1/updateMeta",
         headers=wp_auth_header(), json=payload, timeout=15,
     )
     if resp.status_code == 200:
