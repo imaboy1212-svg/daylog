@@ -253,9 +253,14 @@ def build_daylog_html_guide():
 <div id="section-N" style="margin-bottom:56px;padding-top:40px;border-top:1px solid #e2e8f0;">
   <h2 style="font-size:clamp(18px,3vw,22px);font-weight:800;color:#1e293b;margin:0 0 8px 0;line-height:1.4;">[제목 — 최소 1개 섹션의 H2 제목에는 포커스 키워드를 그대로 포함할 것]</h2>
   <p style="font-size:15px;color:#94a3b8;font-weight:600;margin:0 0 20px 0;">[서브 문구]</p>
-  <p style="font-size:15px;color:#334155;line-height:1.9;margin-bottom:16px;">[핵심 내용 서술 — 섹션당 최소 3~4문장 이상으로 충분히 설명할 것]</p>
+  <p style="font-size:15px;color:#334155;line-height:1.9;margin-bottom:16px;">[핵심 내용 서술 — 섹션당 최소 3~4문장 이상으로 충분히 설명할 것. 문단 안에서 가장 중요한 핵심 문장(또는 구절) 1개는 반드시 <mark style="background:#fef08a;padding:0 2px;border-radius:2px;">이렇게</mark> 형광펜 강조 태그로 감싼다]</p>
   [내용 성격에 맞는 컴포넌트 1개 이상 — 표/글머리기호 박스/스텝 박스/주의사항 박스 중 선택]
 </div>
+
+--- 4-0. 형광펜 강조 규칙 (본문이 길어 훑어보기 어려우므로 반드시 지킬 것) ---
+- 각 섹션(본문 3개)마다 그 섹션에서 독자가 가장 먼저 눈에 담아야 할 핵심 문장 또는 핵심 구절을 1개(최대 2개)씩 골라 <mark style="background:#fef08a;padding:0 2px;border-radius:2px;">문장</mark>으로 감싼다.
+- 문장 전체를 통째로 감싸지 말고, 그 문장에서도 정말 핵심적인 구절(날짜, 수치, 결론 등)만 짧게 감싼다 — 과하게 넓은 범위를 감싸거나 문단마다 남발하면 형광펜 효과가 사라진다.
+- 표·박스 컴포넌트 안의 텍스트에는 사용하지 않는다 (이미 시각적으로 강조되어 있음). 본문 문단(<p>)에만 사용한다.
 
 --- 4-1. 애드센스 슬롯 B — 가로형 인피드 (섹션 1 바로 아래, 섹션 2 시작 전 — 아래 코드를 정확히 그대로 복사) ---
 <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=ca-pub-6858780475640766" crossorigin="anonymous"></script>
