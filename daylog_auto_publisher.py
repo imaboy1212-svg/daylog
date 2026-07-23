@@ -280,7 +280,7 @@ def build_daylog_html_guide():
   </ul>
 </div>
 
-▶ 날짜·조건 비교 → 최대 3컬럼 표 (th는 항상 center, 단문 15자 이하 center, 장문 left)
+▶ 날짜·조건 비교 → 최대 3컬럼 표 (th·td 모두 text-align:center — 문장 길이와 무관하게 전부 중앙정렬)
 <div style="overflow-x:auto;margin:16px 0;word-break:keep-all;">
   <table style="width:100%;border-collapse:collapse;font-size:13px;">
     <thead><tr style="background:{CAT_COLOR};color:#fff;">
@@ -289,7 +289,7 @@ def build_daylog_html_guide():
       <th style="padding:11px 14px;text-align:center;font-weight:700;">[항목B]</th>
     </tr></thead>
     <tbody>
-      <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:11px 14px;text-align:center;color:#334155;">[행 라벨]</td><td style="padding:11px 14px;text-align:center;color:#334155;">[값A]</td><td style="padding:11px 14px;text-align:left;color:#334155;">[장문 값B]</td></tr>
+      <tr style="border-bottom:1px solid #e2e8f0;"><td style="padding:11px 14px;text-align:center;color:#334155;">[행 라벨]</td><td style="padding:11px 14px;text-align:center;color:#334155;">[값A]</td><td style="padding:11px 14px;text-align:center;color:#334155;">[값B — 문장이 길어도 center]</td></tr>
     </tbody>
   </table>
 </div>
@@ -426,7 +426,7 @@ def generate_draft(item, event_year, verification_note="", confidence="medium"):
 - 문어체(이다/한다/했다), 구어체·이모티콘 금지 (단, 가이드에 명시된 이모지 아이콘은 허용)
 - HTML을 ```html 코드블록으로 감싸지 말 것 — 순수 HTML만 출력
 - 확인되지 않은 수치·날짜를 단정하지 말 것 — 근거 없으면 "공식 공고 확인 필요"로 표기
-- 표는 컬럼 최대 3개, 단문(15자 이하) 셀은 center, 장문 셀은 left, th는 항상 center
+- 표는 컬럼 최대 3개, th·td 모두 text-align:center — 문장 길이와 무관하게 전부 중앙정렬
 - 글 반드시 끝까지 완성
 - "클릭해주세요", "광고를 눌러주세요" 같은 광고·링크 클릭 유도 문구 절대 금지 (구글 애드센스 정책 위반 — 계정 정지 사유)
 - 제휴 CTA 카드는 본문 주제와 실제로 관련된 상품·숙소를 추천할 때만 1개 사용, 억지로 넣지 말 것
