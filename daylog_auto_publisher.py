@@ -315,15 +315,15 @@ def build_daylog_html_guide():
   <p style="margin:8px 0 0 0;font-size:12px;color:#94a3b8;">※ [계산 전제·단서]</p>
 </div>
 <script>
-(function(){
+(function() {{
   var input = document.getElementById('[고유id]-input');
   var btn = document.getElementById('[고유id]-btn');
   var result = document.getElementById('[고유id]-result');
-  function calc(){ /* 계산 로직 */ }
-  if (btn) { btn.addEventListener('click', calc); }
-})();
+  function calc() {{ /* 계산 로직 */ }}
+  if (btn) {{ btn.addEventListener('click', calc); }}
+}})();
 </script>
-※ 세율·요율처럼 매년 바뀌는 값이 계산에 들어가면, 연도를 고르는 <select>와 함께 `var RATES = { 2026: {...} };` 같은 연도별 값 객체로 작성한다. 다음 해 발행 시 이 계산기를 재사용하며 RATES 객체에 새 연도만 추가하면 되므로 계산 로직을 매번 새로 쓰지 않는다. id는 항목마다 고유 접두어(예: 최저임금 글이면 `dlmw-`)를 붙여 다른 글의 계산기와 충돌하지 않게 한다.
+※ 세율·요율처럼 매년 바뀌는 값이 계산에 들어가면, 연도를 고르는 select 태그와 함께 연도별 값 객체(예: var RATES = {{ 2026: {{...}} }};)로 작성한다. 다음 해 발행 시 이 계산기를 재사용하며 RATES 객체에 새 연도만 추가하면 되므로 계산 로직을 매번 새로 쓰지 않는다. id는 항목마다 고유 접두어(예: 최저임금 글이면 dlmw-)를 붙여 다른 글의 계산기와 충돌하지 않게 한다.
 
 ▶ 주의·마감 임박 → 주의사항 박스
 <div style="background:#fef9c3;border-left:4px solid #eab308;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;">
