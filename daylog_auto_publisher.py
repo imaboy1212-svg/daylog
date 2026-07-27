@@ -302,6 +302,29 @@ def build_daylog_html_guide():
   </div>
 </div>
 
+▶ 계산 공식이 핵심인 섹션(계산법 등) → 인터랙티브 계산기 (선택적, 값을 직접 입력해 계산해볼 수 있으면 독자 체류시간에 유리)
+※ 이 사이트는 애드센스 스크립트가 그대로 렌더링되는 것으로 확인됐으므로 <script> 태그가 본문에 살아남는다 — 순수 vanilla JS로 작성하고 외부 라이브러리는 쓰지 않는다.
+<div style="background:#f8fafc;border:1px solid #e2e8f0;border-radius:12px;padding:24px;margin:20px 0;">
+  <p style="margin:0 0 12px 0;font-weight:700;font-size:15px;color:#1e293b;">🧮 [계산기 제목]</p>
+  <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px;">
+    <label for="[고유id]-input" style="font-size:14px;color:#334155;">[입력값 라벨]</label>
+    <input type="number" id="[고유id]-input" value="[기본값]" style="padding:8px 12px;border:1px solid #cbd5e1;border-radius:8px;font-size:14px;width:120px;">
+    <button id="[고유id]-btn" type="button" style="background:{CAT_COLOR};color:#fff;border:none;padding:8px 16px;border-radius:8px;font-size:14px;font-weight:700;cursor:pointer;">계산하기</button>
+  </div>
+  <p id="[고유id]-result" style="margin:0;font-size:15px;color:#1e293b;font-weight:700;">[기본값 기준 결과 미리 채워둠]</p>
+  <p style="margin:8px 0 0 0;font-size:12px;color:#94a3b8;">※ [계산 전제·단서]</p>
+</div>
+<script>
+(function(){
+  var input = document.getElementById('[고유id]-input');
+  var btn = document.getElementById('[고유id]-btn');
+  var result = document.getElementById('[고유id]-result');
+  function calc(){ /* 계산 로직 */ }
+  if (btn) { btn.addEventListener('click', calc); }
+})();
+</script>
+※ 세율·요율처럼 매년 바뀌는 값이 계산에 들어가면, 연도를 고르는 <select>와 함께 `var RATES = { 2026: {...} };` 같은 연도별 값 객체로 작성한다. 다음 해 발행 시 이 계산기를 재사용하며 RATES 객체에 새 연도만 추가하면 되므로 계산 로직을 매번 새로 쓰지 않는다. id는 항목마다 고유 접두어(예: 최저임금 글이면 `dlmw-`)를 붙여 다른 글의 계산기와 충돌하지 않게 한다.
+
 ▶ 주의·마감 임박 → 주의사항 박스
 <div style="background:#fef9c3;border-left:4px solid #eab308;border-radius:0 12px 12px 0;padding:16px 20px;margin:16px 0;">
   <p style="margin:0 0 8px 0;font-size:13px;font-weight:800;color:#854d0e;">⚠ 주의사항</p>
