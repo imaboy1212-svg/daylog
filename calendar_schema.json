@@ -1395,6 +1395,21 @@
       "last_published_year": null,
       "title_template": "{year}년 신학기 학원 등록·특강 프로모션 체크리스트",
       "lead_time_rationale": "조기등록 할인은 신학기 한두 달 전부터 시작되는 경우가 많아 미리 안내 필요"
+    },
+    {
+      "id": "annual-tax-reform-announcement",
+      "title": "정부 세제개편안 발표",
+      "date": "08-03",
+      "calendar_type": "solar",
+      "is_variable": true,
+      "note": "기획재정부 세제개편안(소득세·부동산세·법인세 등) 발표. 매년 7월말~8월초 발표되며 정확한 날짜·세부 내용은 해마다 달라 WebSearch로 그해 실제 발표 여부·내용을 반드시 확인 후 작성",
+      "lead_time_days": 5,
+      "category": "세금·행정마감",
+      "audience": "전체",
+      "site_target": "daylog",
+      "last_published_year": 2026,
+      "title_template": "{year}년 세제개편안 총정리 — 무엇이 달라지나",
+      "lead_time_rationale": "발표 임박·직후 정보 — 실제 발표일이 매년 유동적이므로 근접일 기준 짧은 리드타임"
     }
   ]
 }
