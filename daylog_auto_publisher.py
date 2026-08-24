@@ -179,6 +179,45 @@ def wp_update_rank_math(post_id, focus_keyword, meta_description):
         print(f"Rank Math 메타 업데이트 실패: {resp.status_code} {resp.text[:200]}")
 
 
+def wp_set_tags(post_id, hashtags_str):
+    """
+    '#태그1 #태그2 ...' 형식의 HASHTAGS 문자열을 워드프레스 실제 태그(post_tag) 분류로 붙인다.
+    이름으로 기존 태그를 찾고 없으면 새로 생성한 뒤, 얻은 ID들을 글에 지정한다. best-effort — 실패해도 무시.
+    """
+    names = [t.lstrip("#").strip() for t in hashtags_str.split() if t.strip()]
+    if not names:
+        return
+    tag_ids = []
+    for name in names:
+        try:
+            resp = requests.get(
+                f"{DAYLOG_WP_SITE_URL}/wp-json/wp/v2/tags",
+                headers=wp_auth_header(), params={"search": name, "per_page": 10}, timeout=15,
+            )
+            existing = next((t for t in resp.json() if t.get("name") == name), None) if resp.ok else None
+            if existing:
+                tag_ids.append(existing["id"])
+                continue
+            resp2 = requests.post(
+                f"{DAYLOG_WP_SITE_URL}/wp-json/wp/v2/tags",
+                headers=wp_auth_header(), json={"name": name}, timeout=15,
+            )
+            if resp2.ok:
+                tag_ids.append(resp2.json()["id"])
+        except Exception as e:
+            print(f"태그 처리 실패 ({name}): {e}")
+    if not tag_ids:
+        return
+    resp3 = requests.post(
+        f"{DAYLOG_WP_SITE_URL}/wp-json/wp/v2/posts/{post_id}",
+        headers=wp_auth_header(), json={"tags": tag_ids}, timeout=15,
+    )
+    if resp3.ok:
+        print(f"태그 적용 완료 (post_id: {post_id}): {names}")
+    else:
+        print(f"태그 적용 실패: {resp3.status_code} {resp3.text[:200]}")
+
+
 # ==========================================
 # 텔레그램 전송
 # ==========================================
@@ -556,6 +595,9 @@ def parse_and_save_draft(raw, item, event_year, confidence="medium"):
 
     if post_id and focus_kw:
         wp_update_rank_math(post_id, focus_kw, meta_desc)
+
+    if post_id and hashtags:
+        wp_set_tags(post_id, hashtags)
 
     confidence_warning = (
         f"\n⚠ 날짜·사실 확신 수준: {confidence.upper()} — 발행 전 직접 확인 권장\n"
