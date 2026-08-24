@@ -537,7 +537,7 @@
       "category": "생활·집안일",
       "audience": "주부",
       "site_target": "daylog",
-      "last_published_year": null,
+      "last_published_year": 2026,
       "title_template": "{year}년 가을 이사철 성수기 전세·월세 준비",
       "lead_time_rationale": "계약·업체 섭외 준비 기간 필요"
     },
@@ -1167,7 +1167,7 @@
       "category": "여행·쇼핑·이벤트",
       "audience": "전체",
       "site_target": "daylog",
-      "last_published_year": null,
+      "last_published_year": 2026,
       "title_template": "{year}년 추석 연휴 KTX·기차표 예매 오픈일과 매진 대비 팁",
       "lead_time_rationale": "예매 오픈 당일 매진 경쟁이 치열해 사전 안내 필요 (코레일 발표 패턴 기준 4~5주 전)"
     },
@@ -1302,7 +1302,7 @@
       "category": "여행·쇼핑·이벤트",
       "audience": "전체",
       "site_target": "daylog",
-      "last_published_year": null,
+      "last_published_year": 2026,
       "title_template": "{year}년 올리브영 가을 시즌세일 기간과 할인 품목",
       "lead_time_rationale": "세일 시작 전 장바구니 미리 담아두는 수요"
     },
@@ -1362,7 +1362,7 @@
       "category": "여행·쇼핑·이벤트",
       "audience": "전체",
       "site_target": "daylog",
-      "last_published_year": null,
+      "last_published_year": 2026,
       "title_template": "{year}년 애플 아이폰 신제품 발표와 사전예약 정보",
       "lead_time_rationale": "사전예약·개통 정보는 발표 직후부터 검색 몰림"
     },
