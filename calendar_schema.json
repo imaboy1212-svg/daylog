@@ -612,7 +612,7 @@
       "category": "세금·행정",
       "audience": "부모",
       "site_target": "daylog",
-      "last_published_year": null,
+      "last_published_year": 2026,
       "title_template": "{year}년 대입 수시 원서접수 일정과 준비사항",
       "lead_time_rationale": "지원 전략 준비 시간 필요"
     },
@@ -1212,7 +1212,7 @@
       "category": "여행·쇼핑·이벤트",
       "audience": "전체",
       "site_target": "daylog",
-      "last_published_year": null,
+      "last_published_year": 2026,
       "title_template": "{year}년 겨울 스키장 시즌권 조기예약 가격 비교",
       "lead_time_rationale": "얼리버드 할인은 선착순 마감되는 경우가 많아 조기 안내 필요"
     },
