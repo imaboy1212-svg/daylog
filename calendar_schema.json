@@ -552,7 +552,7 @@
       "category": "세금·행정",
       "audience": "주부",
       "site_target": "daylog",
-      "last_published_year": null,
+      "last_published_year": 2026,
       "title_template": "{year}년 재산세 2기분 납부 기간 안내",
       "lead_time_rationale": "납부 기한 임박형"
     },
@@ -567,7 +567,7 @@
       "category": "명절·기념일",
       "audience": "직장인",
       "site_target": "daylog",
-      "last_published_year": null,
+      "last_published_year": 2026,
       "title_template": "{year}년 추석 상여금 지급 기준과 명절 선물 시세",
       "lead_time_rationale": "지급 기준 확인은 명절 임박 검색"
     },
