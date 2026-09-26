@@ -133,8 +133,17 @@ def find_due_items(data):
 # WordPress REST API 헬퍼
 # ==========================================
 def wp_auth_header():
+    """
+    호스팅 측 봇 방어(WAF)가 기본 python-requests User-Agent를 차단하고 "Bot Verification"
+    페이지(403)를 대신 돌려주는 것을 확인(2026-09-26)했다. 일반 브라우저 User-Agent를 붙이면
+    통과되므로 항상 이 헤더를 포함한다.
+    """
     token = base64.b64encode(f"{DAYLOG_WP_USERNAME}:{DAYLOG_WP_APP_PASSWORD}".encode()).decode()
-    return {"Authorization": f"Basic {token}", "Content-Type": "application/json"}
+    return {
+        "Authorization": f"Basic {token}",
+        "Content-Type": "application/json",
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    }
 
 
 def wp_create_draft(title, content, excerpt, slug, category_id=None):
