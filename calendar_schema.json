@@ -922,14 +922,14 @@
       "date": "10-29",
       "calendar_type": "solar",
       "is_variable": true,
-      "note": "정부 주관 행사로 매년 기간이 다름. 2025년은 10/29~11/16 진행 확인",
+      "note": "정부 주관 행사로 매년 명칭·기간이 달라짐. 2026년부터 '코리아세일페스타'가 'K-세일페스타'로 이름이 바뀌어 범정부 소비축제 '코리아그랜드페스티벌'의 일부로 열림(2026년은 10/29~11/15, 18일간). 참고: 2025년은 10/29~11/16 진행으로 확인했으나 이는 지난해 사례일 뿐 올해 사실이 아니다 — 발행 시점에 그해 최신 발표를 WebSearch로 다시 확인할 것. 참여 브랜드·할인율은 행사 직전에야 공개되므로 미확정 상태에서 단정하지 말 것",
       "lead_time_days": 18,
       "lead_time_rationale": "정부 발표 시점과 실제 할인 시작 사이 준비 기간 고려",
       "category": "여행·쇼핑·이벤트",
       "audience": "전체",
       "site_target": "daylog",
-      "last_published_year": null,
-      "title_template": "{year}년 코리아세일페스타 기간과 할인 브랜드 총정리"
+      "last_published_year": 2026,
+      "title_template": "{year}년 K-세일페스타(구 코리아세일페스타) 기간과 달라진 점"
     },
     {
       "id": "cyber-monday",
